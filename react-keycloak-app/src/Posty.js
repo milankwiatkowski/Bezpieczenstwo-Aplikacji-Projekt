@@ -11,19 +11,6 @@ function Posts() {
     const [role,setRole] = useState()
     const [posts, setPosts] = useState([]);
     useEffect(() => {
-        async function fetchdata(){
-            const response = await fetch('http://localhost:3001/admin', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${keycloak.token}`}
-            });
-            const responseData = await response.json();
-            setPosts(responseData.posts);
-        }
-        fetchdata();
-    },[]);
-    useEffect(() => {
         document.title = "Posts"
         if (initialized && keycloak?.authenticated) {
           setRole(keycloak.tokenParsed?.realm_access?.roles[1])
@@ -33,6 +20,19 @@ function Posts() {
           setIsAdmin(isUserAdmin);
         }
       }, [initialized, keycloak]);
+      useEffect(() => {
+        async function fetchdata(){
+            const response = await fetch('http://localhost:3001/admin', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${keycloak.token}`}
+            });
+            const responseData = await response.json();
+            setPosts(responseData);
+        }
+        fetchdata();
+    },[]);
   if(!initialized) {
     return <div>Loading...</div>;
   }
@@ -42,12 +42,19 @@ function Posts() {
         {initialized ? (
           <>
           <p>Welcome {role}, {keycloak.tokenParsed?.preferred_username}!</p>
-            {posts.map((post, index) => (
+          {posts!=undefined ? (
+            <div>
+              {posts.map((post, index) => (
                 <div key={index}>
-                    <h3>{post.tytul}</h3>
-                    <p>{post.tresc}</p>
+                  <h2>{post.tytul}</h2>
+                  <p>{post.tresc}</p>
+                  <p>Poster: {post.poster}</p>
                 </div>
-            ))}
+              ))}
+            </div>
+          ) : (
+            <p>No posts available.</p>
+          )}
           </>
         ):(
           <>
