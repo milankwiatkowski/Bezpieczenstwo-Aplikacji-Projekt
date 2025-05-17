@@ -1,34 +1,32 @@
 'use client'
 import logo from './logo.svg';
 import { useKeycloak } from "@react-keycloak/web";
-
+import { useLayoutEffect } from 'react';
 import './App.css';
 import { useState, useEffect } from 'react';
-function ModeratorPanel() {
+function Posts() {
   const {keycloak, initialized} = useKeycloak();
     const [isAdmin, setIsAdmin] = useState(false);
     const [isMod, setIsAMod] = useState(false);
     const [role,setRole] = useState()
-    async function sendData() {
-    const tytul = document.getElementById('tytul').value;
-    const tresc = document.getElementById('tresc').value;
-  const response = await fetch('http://localhost:3001/admin', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${keycloak.token}`,
-    },
-    body: JSON.stringify({
-      poster: keycloak.tokenParsed.preferred_username,
-      tytul: tytul,
-      tresc: tresc
-    })
-  });
-}
+    const [posts, setPosts] = useState([]);
     useEffect(() => {
-        document.title = "Moderator Panel"
+        async function fetchdata(){
+            const response = await fetch('http://localhost:3001/admin', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${keycloak.token}`}
+            });
+            const responseData = await response.json();
+            setPosts(responseData.posts);
+        }
+        fetchdata();
+    },[]);
+    useEffect(() => {
+        document.title = "Posts"
         if (initialized && keycloak?.authenticated) {
-            setRole(keycloak.tokenParsed?.realm_access?.roles[1])
+          setRole(keycloak.tokenParsed?.realm_access?.roles[1])
           const isUserAdmin = keycloak.hasRealmRole("admin");
           const isModerator = keycloak.hasRealmRole("moderator");
           setIsAMod(isModerator);
@@ -41,16 +39,19 @@ function ModeratorPanel() {
   return (
     <div className="App">
       <header className="App-header">
-        {isAdmin || isMod ? (
+        {initialized ? (
           <>
           <p>Welcome {role}, {keycloak.tokenParsed?.preferred_username}!</p>
-            <input type="text" id="tytul" placeholder="Tytuł" />
-            <input type="text" id="tresc" placeholder="Treść" />
-            <button id="myButton2" onClick={sendData}>Wyślij</button>
+            {posts.map((post, index) => (
+                <div key={index}>
+                    <h3>{post.tytul}</h3>
+                    <p>{post.tresc}</p>
+                </div>
+            ))}
           </>
         ):(
           <>
-          <p>You are not an admin or a moderator.</p>
+          <p>You are not logged in.</p>
           </>
         )}
       </header>
@@ -58,4 +59,4 @@ function ModeratorPanel() {
   );
 }
 
-export default ModeratorPanel
+export default Posts

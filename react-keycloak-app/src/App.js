@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import "./App.css";
 import AdminPanel from "./Admin-Panel";
 import ModeratorPanel from "./Moderator-Panel";
+import Posts from "./Posty";
 function App() {
   const navigate = useNavigate();
   const { keycloak, initialized } = useKeycloak();
@@ -27,6 +28,7 @@ function App() {
                   <p>Welcome, {keycloak.tokenParsed?.preferred_username}!</p>
                   <button className="App-button" onClick={() => navigate("/admin-panel")}>Panel Administratorski</button>
                   <button className="App-button" onClick={() => navigate("/moderator-panel")}>Panel Moderatora</button>
+                  <button className="App-button" onClick={() => navigate("/posts")}>Posty</button>
                   <button className="App-button" onClick={() => keycloak.logout()}>Wyloguj się</button>
                 </>
               ) : (
@@ -55,6 +57,18 @@ function App() {
             element={
               keycloak.authenticated ? (
                 <ModeratorPanel />
+              ) : (
+                <>
+                <p>Brak dostępu — zaloguj się!</p>
+                </>
+              )
+            }
+          />
+          <Route
+            path="/posts"
+            element={
+              keycloak.authenticated ? (
+                <Posts />
               ) : (
                 <>
                 <p>Brak dostępu — zaloguj się!</p>
